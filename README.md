@@ -1,0 +1,70 @@
+# Waves!
+A really cool web-proxy
+
+[![Better Stack Badge](https://uptime.betterstack.com/status-badges/v3/monitor/1r475.svg)](https://uptime.betterstack.com/?utm_source=status_badge)
+
+[![Join our Discord](https://invidget.switchblade.xyz/dJvdkPRheV)](https://discord.gg/dJvdkPRheV)
+
+> [!IMPORTANT]
+> Consider giving this repository a star if you're forking it <3
+
+## Features:
+
+- Cool UI
+- Fast
+- Hella tuff
+- Idk
+
+## Usage
+
+You **cannot** deploy Waves on any static hosting services!
+
+## Self-Hosting
+   
+```bash
+git clone https://github.com/l4uy/waves/
+
+cd waves
+
+sh setup.sh
+```
+
+## Development & Building
+
+Development
+
+```bash
+git clone https://github.com/l4uy/waves/
+
+cd waves
+
+bun i
+
+bun dev
+```
+
+Production
+
+```bash
+git clone https://github.com/l4uy/waves/
+
+cd waves
+
+bun i
+
+bun run build
+
+bun start
+```
+
+## Credits
+
+- [GN-Math](https://github.com/gn-math/gn-math.github.io/) - All of the games
+- [Bog](https://github.com/aukak/) - Ports for Hollow Knight, RE:RUN, and Touhou Mother
+- [Titanium Network](https://github.com/titaniumnetwork-dev/Ultraviolet/) - Ultraviolet
+- [Mercury Workshop](https://github.com/MercuryWorkshop/) - Scramjet, Epoxy, and Libcurl
+
+
+## License
+
+This project is licensed under the [WPL-1.0 License](LICENSE).
