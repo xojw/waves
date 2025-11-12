@@ -449,7 +449,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function outsideClickListener(event) {
-        if (!dom.newTabModal.contains(event.target) && !dom.addTabBtn.contains(event.target)) {
+        if (!dom.newTabModal.contains(event.target) && 
+            !dom.addTabBtn.contains(event.target) &&
+            !(dom.splitViewBtn && dom.splitViewBtn.contains(event.target))
+        ) {
             hideTabSelectionModal();
             if (isPickingSplitTab) {
                 isPickingSplitTab = false; 
