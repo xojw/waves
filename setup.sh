@@ -280,17 +280,19 @@ check_and_configure_ports() {
 }
 
 install_epoxy_server() {
-    echo "Cloning..."
+    echo "Cloning and ensuring latest source..."
     if [ ! -d "$HOME/epoxy-tls" ]; then
         git clone https://github.com/MercuryWorkshop/epoxy-tls.git "$HOME/epoxy-tls"
-    else
-        cd "$HOME/epoxy-tls"
-        git checkout main || git checkout master || true
-        git pull
     fi
     
-    echo "Compiling..."
     cd "$HOME/epoxy-tls"
+    git fetch
+    if git rev-parse --verify main >/dev/null 2>&1; then
+        git checkout prod
+    fi
+    git pull
+
+    echo "Compiling..."
     if ! grep -q "^\[profile.release\]" Cargo.toml; then
         printf "\n[profile.release]\nlto = \"fat\"\ncodegen-units = 1\n" >> Cargo.toml
     fi
@@ -318,39 +320,51 @@ check_and_configure_ports
 info "Checking dependencies"
 
 dependencies_needed=false
-if ! command -v unzip >/dev/null 2>&1 || ! command -v bun >/dev/null 2>&1 || ! $HOME/.bun/bin/bun pm -g ls | grep -q 'pm2@' || ! command -v cargo >/dev/null 2>&1 || ! command -v proxychains4 >/dev/null 2>&1 || ! dpkg-query -l 2>/dev/null | grep -q caddy || ! command -v jq >/dev/null 2>&1 || ! command -v node >/dev/null 2>&1 || ! command -v dig >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1; then
+if ! command -v unzip >/dev/null 2>&1 || ! command -v bun >/dev/null 2>&1 || ! $HOME/.bun/bin/bun pm -g ls | grep -q 'pm2@' || ! command -v cargo >/dev/null 2>&1 || ! command -v proxychains4 >/dev/null 2>&1 || ! dpkg-query -l 2>/dev/null | grep -q caddy || ! command -v jq >/dev/null 2>&1 || ! command -v node >/dev/null 2>&1 || ! command -v dig >/dev/null 2>&1; then
   dependencies_needed=true
 fi
 
 if [ "$dependencies_needed" = true ]; then
   run_task "Installing missing dependencies" "Dependencies installed" '
     sudo apt-get update -y >/dev/null 2>&1
-    
-    # Install core tools that other installations depend on (Fixes curl not found issue)
-    sudo apt-get install -y unzip proxychains-ng jq dnsutils curl git build-essential pkg-config libssl-dev >/dev/null 2>&1
 
-    # Install Bun
+    if ! command -v unzip >/dev/null 2>&1; then
+      sudo apt-get install -y unzip >/dev/null 2>&1
+    fi
+    if ! command -v proxychains4 >/dev/null 2>&1; then
+      sudo apt-get install -y proxychains-ng >/dev/null 2>&1
+    fi
+    if ! command -v jq >/dev/null 2>&1; then
+      sudo apt-get install -y jq >/dev/null 2>&1
+    fi
+    if ! command -v dig >/dev/null 2>&1; then
+      sudo apt-get install -y dnsutils >/dev/null 2>&1
+    fi
+    
     if ! command -v bun >/dev/null 2>&1; then
       curl -fsSL https://bun.sh/install | bash >/dev/null 2>&1
       export PATH="$HOME/.bun/bin:$PATH"
     fi
-    # Install PM2 globally using Bun
+    
     if ! $HOME/.bun/bin/bun pm -g ls | grep -q "pm2@"; then
       $HOME/.bun/bin/bun add -g pm2 >/dev/null 2>&1
+    else
+      $HOME/.bun/bin/bun update -g pm2 >/dev/null 2>&1
     fi
-    # Install Rust/Cargo
+
     if ! command -v cargo >/dev/null 2>&1; then
       curl https://sh.rustup.rs -sSf | sh -s -- -y >/dev/null 2>&1
       export PATH="$HOME/.cargo/bin:$PATH"
     fi
-    # Install Caddy
+    
     if ! dpkg-query -l 2>/dev/null | grep -q caddy; then
+      sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https git build-essential pkg-config libssl-dev jq proxychains-ng dnsutils >/dev/null 2>&1
       curl -1sLf "https://dl.cloudsmith.io/public/caddy/stable/gpg.key" | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg >/dev/null 2>&1
       curl -1sLf "https://dl.cloudsmith.io/public/caddy/stable/deb.debian.txt" | sudo tee /etc/apt/sources.list.d/caddy-stable.list >/dev/null 2>&1
       sudo apt-get update -y >/dev/null 2>&1
       sudo apt-get install -y caddy >/dev/null 2>&1
     fi
-    # Install Node.js
+    
     if ! command -v node >/dev/null 2>&1; then
       curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - >/dev/null 2>&1
       sudo apt-get install -y nodejs >/dev/null 2>&1
@@ -362,23 +376,20 @@ fi
 
 info "Setting up WireProxy"
 
-if [ ! -f "/usr/local/bin/wgcf" ] || [ ! -f "/usr/local/bin/wireproxy" ]; then
-    run_task "Installing WireProxy and WGCF" "Binaries installed" '
-        DELIM="\""
-        WGCF_URL=`curl -s https://api.github.com/repos/ViRb3/wgcf/releases/latest | grep "browser_download_url.*_linux_amd64" | head -n 1 | cut -d $DELIM -f 4`
-        curl -L -o wgcf "$WGCF_URL"
-        chmod +x wgcf
-        sudo mv wgcf /usr/local/bin/wgcf
-        WIREPROXY_URL=`curl -s https://api.github.com/repos/whyvl/wireproxy/releases/latest | grep "browser_download_url.*_linux_amd64.tar.gz" | head -n 1 | cut -d $DELIM -f 4`
-        curl -L -o wireproxy.tar.gz "$WIREPROXY_URL"
-        tar -xzf wireproxy.tar.gz
-        chmod +x wireproxy
-        sudo mv wireproxy /usr/local/bin/wireproxy
-        rm wireproxy.tar.gz
-    '
-else
-    success "WireProxy and WGCF are already installed"
-fi
+WGCF_LATEST_URL=$(curl -s https://api.github.com/repos/ViRb3/wgcf/releases/latest | jq -r '.assets[] | select(.name | endswith("_linux_amd64")) | .browser_download_url')
+WIREPROXY_LATEST_URL=$(curl -s https://api.github.com/repos/whyvl/wireproxy/releases/latest | jq -r '.assets[] | select(.name | endswith("_linux_amd64.tar.gz")) | .browser_download_url')
+
+run_task "Installing WireProxy and WGCF" "Binaries installed" "
+    curl -L -o wgcf \"$WGCF_LATEST_URL\"
+    chmod +x wgcf
+    sudo mv wgcf /usr/local/bin/wgcf
+
+    curl -L -o wireproxy.tar.gz \"$WIREPROXY_LATEST_URL\"
+    tar -xzf wireproxy.tar.gz
+    chmod +x wireproxy
+    sudo mv wireproxy /usr/local/bin/wireproxy
+    rm wireproxy.tar.gz
+"
 
 if [ ! -f "/etc/wireproxy/wireproxy.conf" ]; then
     run_task "Generating Cloudflare WARP config" "WireGuard config created" '
@@ -454,10 +465,10 @@ fi
 warn "A reboot may be required for all system optimizations to take full effect"
 
 info "Setting up epoxy-server"
-run_task "Cloning and compiling epoxy-server dev branch" "epoxy-server compiled and installed" "install_epoxy_server"
+run_task "Cloning, pulling latest, and compiling epoxy-server" "epoxy-server compiled and installed" "install_epoxy_server"
 
 info "Getting Waves ready"
-run_task "Installing and building" "Built successfully" '
+run_task "Building" "Built successfully" '
   cd "$HOME/waves"
   bun install && bun run build
 '
