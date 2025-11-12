@@ -369,7 +369,6 @@ if [ "$dependencies_needed" = true ]; then
       sudo apt-get install -y nodejs >/dev/null 2>&1
     fi
   '
-  # FIX: Export the Bun path immediately after installation to make it available for the rest of the script
   export PATH="$HOME/.bun/bin:$PATH"
 else
   success "All dependencies are already installed"
@@ -407,6 +406,8 @@ if [ ! -f "/etc/wireproxy/wireproxy.conf" ]; then
         sudo cp wgcf-profile.conf /etc/wireproxy/wireproxy.conf
         
         sudo sed -i "s|$HOSTNAME:$PORT|$IP:$PORT|" /etc/wireproxy/wireproxy.conf
+
+        sudo sed -i "/^Endpoint = /a PersistentKeepalive = 25\nMTU = 1280" /etc/wireproxy/wireproxy.conf
         
         echo "\n[Socks5]\nBindAddress = 127.0.0.1:1080" | sudo tee -a /etc/wireproxy/wireproxy.conf
         
