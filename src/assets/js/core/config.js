@@ -1,9 +1,9 @@
 export const DEFAULT_BOOKMARKS = [
     { name: 'CrazyGames', url: 'https://crazygames.com/' },
-    { name: 'Youtube', url: 'https://discord.com/login/' },
+    { name: 'Youtube', url: 'https://youtube.com/' },
     { name: 'SoundCloud', url: 'https://soundcloud.com/' },
     { name: 'Nowgg.fun', url: 'https://nowgg.fun/' },
-    { name: 'Discord', url: 'https://discord.com/' },
+    { name: 'Discord', url: 'https://discord.com/login/' },
 ];
 
 export const SEARCH_ENGINES = {
