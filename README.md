@@ -22,7 +22,7 @@ You **cannot** deploy Waves on any static hosting services!
 ## Self-Hosting
    
 ```bash
-git clone https://github.com/l4uy/waves/
+git clone --depth 1 https://github.com/l4uy/waves
 
 cd waves
 
@@ -34,7 +34,7 @@ sh setup.sh
 Development
 
 ```bash
-git clone https://github.com/l4uy/waves/
+git clone --depth 1 https://github.com/l4uy/waves
 
 cd waves
 
@@ -46,7 +46,7 @@ bun dev
 Production
 
 ```bash
-git clone https://github.com/l4uy/waves/
+git clone --depth 1 https://github.com/l4uy/waves
 
 cd waves
 
