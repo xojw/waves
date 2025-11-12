@@ -2,7 +2,7 @@ export const DEFAULT_BOOKMARKS = [
     { name: 'CrazyGames', url: 'https://crazygames.com/' },
     { name: 'Youtube', url: 'https://youtube.com/' },
     { name: 'SoundCloud', url: 'https://soundcloud.com/' },
-    { name: 'Nowgg.fun', url: 'https://nowgg.fun/' },
+    { name: 'Cineby', url: 'https://www.cineby.gd/' },
     { name: 'Discord', url: 'https://discord.com/login/' },
 ];
 
