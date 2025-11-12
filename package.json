@@ -13,8 +13,8 @@
     "email": "sentttt@proton.me"
   },
   "scripts": {
-    "start": "NODE_ENV=production node --max-old-space-size=4096 --turbo-fast-api-calls index.mjs",
-    "dev": "node --max-old-space-size=2048 --turbo-fast-api-calls  index.mjs",
+    "start": "NODE_ENV=production node --max-old-space-size=4096 index.mjs",
+    "dev": "node --max-old-space-size=2048 index.mjs",
     "lint": "eslint .",
     "build": "bun build.mjs"
   },
