@@ -1,15 +1,9 @@
-const userIP = typeof window !== 'undefined' && typeof window.USER_IP_ADDRESS === 'string' 
-               ? window.USER_IP_ADDRESS 
-               : '76';
-               
-const robloxUrl = `https://${userIP}.ip.nowgg.fun/apps/a/19900/b.html/`;
-
 export const DEFAULT_BOOKMARKS = [
     { name: 'CrazyGames', url: 'https://crazygames.com/' },
     { name: 'Youtube', url: 'https://discord.com/login/' },
     { name: 'SoundCloud', url: 'https://soundcloud.com/' },
-    { name: 'Roblox', url: robloxUrl },
-    { name: 'Github', url: 'https://github.com/' },
+    { name: 'Nowgg.fun', url: 'https://nowgg.fun/' },
+    { name: 'Discord', url: 'https://discord.com/' },
 ];
 
 export const SEARCH_ENGINES = {

@@ -81,41 +81,6 @@ app.use("/s/", express.static(path.join(__dirname, "scramjet")));
 app.use("/assets/data", express.static(path.join(publicPath, "assets", "data"), { maxAge: 0, immutable: false, etag: true }));
 app.use("/assets", express.static(path.join(publicPath, "assets"), staticOpts));
 app.use("/b", express.static(path.join(publicPath, "b")));
-app.get("/", (req, res) => {
-  const xForwardedFor = req.headers['x-forwarded-for']?.split(',')[0].trim();
-  
-  let ipSegment = '76';
-
-  if (xForwardedFor) {
-      const ipStripped = xForwardedFor.replace(/^.*:/, '');
-      const ipMatch = ipStripped.match(/^(\d{1,3})/);
-      
-      if (ipMatch && ipMatch[1]) {
-          ipSegment = ipMatch[1];
-      }
-  }
-
-  if (ipSegment === '127' || ipSegment === '1') {
-      ipSegment = '76'; 
-  }
-
-  const finalIpToInject = ipSegment;
-
-  fs.readFile(path.join(srcPath, "index.html"), "utf8", (err, data) => {
-    if (err) {
-      console.error("Error reading index.html:", err);
-      return res.status(500).send("Internal Server Error");
-    }
-    
-    const ipScript = `<script>
-      window.USER_IP_ADDRESS = '${finalIpToInject}';
-    </script>`;
-    const modifiedData = data.replace('</head>', `${ipScript}\n</head>`);
-    
-    res.setHeader("Content-Type", "text/html");
-    res.send(modifiedData);
-  });
-});
 app.use(express.static(srcPath, staticOpts));
 
 const bMap = {
@@ -141,6 +106,7 @@ app.get("/api/version", (_req, res) => {
   });
 });
 
+app.get("/", (_req, res) => {res.sendFile(path.join(srcPath, "index.html"));});
 app.use((_req, res) => res.status(404).sendFile(path.join(srcPath, "404.html")));
 
 server.keepAliveTimeout = 5000;
