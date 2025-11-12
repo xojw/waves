@@ -318,43 +318,39 @@ check_and_configure_ports
 info "Checking dependencies"
 
 dependencies_needed=false
-if ! command -v unzip >/dev/null 2>&1 || ! command -v bun >/dev/null 2>&1 || ! $HOME/.bun/bin/bun pm -g ls | grep -q 'pm2@' || ! command -v cargo >/dev/null 2>&1 || ! command -v proxychains4 >/dev/null 2>&1 || ! dpkg-query -l 2>/dev/null | grep -q caddy || ! command -v jq >/dev/null 2>&1 || ! command -v node >/dev/null 2>&1 || ! command -v dig >/dev/null 2>&1; then
+if ! command -v unzip >/dev/null 2>&1 || ! command -v bun >/dev/null 2>&1 || ! $HOME/.bun/bin/bun pm -g ls | grep -q 'pm2@' || ! command -v cargo >/dev/null 2>&1 || ! command -v proxychains4 >/dev/null 2>&1 || ! dpkg-query -l 2>/dev/null | grep -q caddy || ! command -v jq >/dev/null 2>&1 || ! command -v node >/dev/null 2>&1 || ! command -v dig >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1; then
   dependencies_needed=true
 fi
 
 if [ "$dependencies_needed" = true ]; then
   run_task "Installing missing dependencies" "Dependencies installed" '
-    if ! command -v unzip >/dev/null 2>&1; then
-      sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y unzip >/dev/null 2>&1
-    fi
-    if ! command -v proxychains4 >/dev/null 2>&1; then
-      sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y proxychains-ng >/dev/null 2>&1
-    fi
-    if ! command -v jq >/dev/null 2>&1; then
-      sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y jq >/dev/null 2>&1
-    fi
-    if ! command -v dig >/dev/null 2>&1; then
-      sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y dnsutils >/dev/null 2>&1
-    fi
+    sudo apt-get update -y >/dev/null 2>&1
+    
+    # Install core tools that other installations depend on (Fixes curl not found issue)
+    sudo apt-get install -y unzip proxychains-ng jq dnsutils curl git build-essential pkg-config libssl-dev >/dev/null 2>&1
+
+    # Install Bun
     if ! command -v bun >/dev/null 2>&1; then
       curl -fsSL https://bun.sh/install | bash >/dev/null 2>&1
       export PATH="$HOME/.bun/bin:$PATH"
     fi
+    # Install PM2 globally using Bun
     if ! $HOME/.bun/bin/bun pm -g ls | grep -q "pm2@"; then
       $HOME/.bun/bin/bun add -g pm2 >/dev/null 2>&1
     fi
+    # Install Rust/Cargo
     if ! command -v cargo >/dev/null 2>&1; then
       curl https://sh.rustup.rs -sSf | sh -s -- -y >/dev/null 2>&1
       export PATH="$HOME/.cargo/bin:$PATH"
     fi
+    # Install Caddy
     if ! dpkg-query -l 2>/dev/null | grep -q caddy; then
-      sudo apt-get update -y >/dev/null 2>&1
-      sudo apt-get install -y debian-keyring debian-archive-keyring apt-transport-https git build-essential pkg-config libssl-dev jq proxychains-ng dnsutils >/dev/null 2>&1
       curl -1sLf "https://dl.cloudsmith.io/public/caddy/stable/gpg.key" | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg >/dev/null 2>&1
       curl -1sLf "https://dl.cloudsmith.io/public/caddy/stable/deb.debian.txt" | sudo tee /etc/apt/sources.list.d/caddy-stable.list >/dev/null 2>&1
       sudo apt-get update -y >/dev/null 2>&1
       sudo apt-get install -y caddy >/dev/null 2>&1
     fi
+    # Install Node.js
     if ! command -v node >/dev/null 2>&1; then
       curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - >/dev/null 2>&1
       sudo apt-get install -y nodejs >/dev/null 2>&1
