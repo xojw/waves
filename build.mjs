@@ -121,7 +121,8 @@ const steps = [
             const tempCssPath = "dist/assets/css/temp.css";
             await Bun.write(tempCssPath, combinedCss);
             
-            await runSilently("postcss", [
+            await runSilently("bun", [ 
+                path.join(process.cwd(), "node_modules", "postcss-cli", "index.js"),
                 tempCssPath,
                 "--use", "cssnano",
                 "--output", "dist/assets/css/style.css",
