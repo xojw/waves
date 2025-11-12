@@ -465,7 +465,7 @@ fi
 warn "A reboot may be required for all system optimizations to take full effect"
 
 info "Setting up epoxy-server"
-run_task "Cloning, pulling latest, and compiling epoxy-server" "epoxy-server compiled and installed" "install_epoxy_server"
+run_task "Compiling and installing epoxy-server" "epoxy-server compiled and installed" "install_epoxy_server"
 
 info "Getting Waves ready"
 run_task "Building" "Built successfully" '
