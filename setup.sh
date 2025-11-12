@@ -343,13 +343,12 @@ if [ "$dependencies_needed" = true ]; then
     
     if ! command -v bun >/dev/null 2>&1; then
       curl -fsSL https://bun.sh/install | bash >/dev/null 2>&1
-      export PATH="$HOME/.bun/bin:$PATH"
     fi
     
     if ! $HOME/.bun/bin/bun pm -g ls | grep -q "pm2@"; then
-      $HOME/.bun/bin/bun add -g pm2 >/dev/null 2>&1
+      "$HOME/.bun/bin/bun" add -g pm2 >/dev/null 2>&1
     else
-      $HOME/.bun/bin/bun update -g pm2 >/dev/null 2>&1
+      "$HOME/.bun/bin/bun" update -g pm2 >/dev/null 2>&1
     fi
 
     if ! command -v cargo >/dev/null 2>&1; then
@@ -370,6 +369,8 @@ if [ "$dependencies_needed" = true ]; then
       sudo apt-get install -y nodejs >/dev/null 2>&1
     fi
   '
+  # FIX: Export the Bun path immediately after installation to make it available for the rest of the script
+  export PATH="$HOME/.bun/bin:$PATH"
 else
   success "All dependencies are already installed"
 fi
@@ -470,7 +471,7 @@ run_task "Compiling and installing epoxy-server" "epoxy-server compiled and inst
 info "Getting Waves ready"
 run_task "Building" "Built successfully" '
   cd "$HOME/waves"
-  bun install && bun run build
+  "$HOME/.bun/bin/bun" install && "$HOME/.bun/bin/bun" run build
 '
 
 info "Creating configuration files"
